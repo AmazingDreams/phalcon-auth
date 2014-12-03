@@ -1,0 +1,16 @@
+{
+    "name": "guldenplaza/auth",
+    "description": "Guldenplaza authentication module for phalcon",
+    "authors": [
+        {
+            "name": "Dennis Ruhe",
+            "email": "dennis@amazingsystems.nl"
+        }
+    ],
+    "require": {},
+    "autoload" : {
+        "psr-4" : {
+            "Guldenplaza\\Auth\\" : "src/"
+        }
+    }
+}
