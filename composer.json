@@ -1,5 +1,5 @@
 {
-    "name": "amazingdreams/auth",
+    "name": "amazingdreams/phalcon-auth",
     "description": "Guldenplaza authentication module for phalcon",
     "authors": [
         {
