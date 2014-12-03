@@ -1,6 +1,6 @@
 {
     "name": "amazingdreams/phalcon-auth",
-    "description": "Guldenplaza authentication module for phalcon",
+    "description": "Authentication module for phalcon",
     "authors": [
         {
             "name": "Dennis Ruhe",
