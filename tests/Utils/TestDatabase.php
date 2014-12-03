@@ -6,7 +6,7 @@ class TestDatabase extends \Phalcon\Db\Adapter\Pdo\Sqlite {
 
 	public function __construct()
 	{
-		$db_file = '/tmp/guldenplaza-unittest.db';
+		$db_file = '/tmp/amazingdreams-auth-unittest.db';
 
 		if (file_exists($db_file))
 		{

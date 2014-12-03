@@ -1,6 +1,6 @@
 <?php
 
-namespace Guldenplaza\Auth\Security;
+namespace AD\Auth\Security;
 
 use \Phalcon\Validation\Validator\Confirmation;
 use \Phalcon\Validation\Validator\Email;
