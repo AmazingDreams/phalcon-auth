@@ -90,7 +90,7 @@ class Auth extends \Phalcon\Mvc\User\Component {
 	/**
 	 * Try to log the user in
 	 *
-	 * @param  username  The username
+	 * @param  username  The username or email address
 	 * @param  password  The password
 	 * @param  remember  Whether to remember the user or not
 	 *
@@ -100,9 +100,10 @@ class Auth extends \Phalcon\Mvc\User\Component {
 	{
 		$classname   = $this->_className;
 		$this->_user = $classname::findFirst(array(
-			'username = :username: AND password = :password:',
+			'(username = :username: OR email = :email:) AND password = :password:',
 			'bind' => array(
 				'username' => $username,
+				'email'    => $username,
 				'password' => $this->hash($password),
 			)));
 

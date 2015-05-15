@@ -4,7 +4,7 @@ class TestDatabase extends \Phalcon\Db\Adapter\Pdo\Sqlite {
 
 	private $_created_tables = array();
 
-	public function __construct()
+	public function __construct(array $descriptor = NULL)
 	{
 		$db_file = '/tmp/amazingdreams-auth-unittest.db';
 

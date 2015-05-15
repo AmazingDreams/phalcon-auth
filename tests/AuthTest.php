@@ -27,7 +27,7 @@ class AuthTest extends \PHPUnit_Framework_Testcase {
 
 			return $adapter;
 		});
-		$this->di->set('auth', new \Guldenplaza\Auth\Security\Auth(new \Phalcon\Config(array(
+		$this->di->set('auth', new \AD\Auth\Security\Auth(new \Phalcon\Config(array(
 			'session_key' => 'testkey',
 			'hash_key'    => 'hashkey',
 			'hash_method' => 'sha256',
@@ -135,18 +135,12 @@ class AuthTest extends \PHPUnit_Framework_Testcase {
 	{
 		$db = $this->di->get('db');
 
-		foreach(TestUser::find() as $user)
-		{
-			var_dump($user);
-		}
-
 		// Insert user
 		$result = $db->query('INSERT INTO `users` (`username`, `email`, `password`) VALUES(:username, :email, :password)', array(
 			'username' => 'existing_user',
 			'email'    => 'someemail@example.com',
 			'password' => '80ed70cf6ba151f600527b2949b0516d1ce04c1b5c5d3baa1b3cdd396fcbf16a',
 		));
-
 
 		$success = $this->di->get('auth')->login('existing_user', 'some-password');
 
@@ -160,6 +154,22 @@ class AuthTest extends \PHPUnit_Framework_Testcase {
 		$failed = $this->di->get('auth')->login('non_existing_user', 'non_existing_password');
 
 		$this->assertFalse($failed);
+	}
+
+	public function testLoginEmail()
+	{
+		$db = $this->di->get('db');
+
+		// Insert user
+		$result = $db->query('INSERT INTO `users` (`username`, `email`, `password`) VALUES(:username, :email, :password)', array(
+			'username' => 'existing_user',
+			'email'    => 'someemail@example.com',
+			'password' => '80ed70cf6ba151f600527b2949b0516d1ce04c1b5c5d3baa1b3cdd396fcbf16a',
+		));
+
+		$success = $this->di->get('auth')->login('someemail@example.com', 'some-password');
+
+		$this->assertTrue($success);
 	}
 
 
