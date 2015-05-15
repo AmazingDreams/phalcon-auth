@@ -172,5 +172,37 @@ class AuthTest extends \PHPUnit_Framework_Testcase {
 		$this->assertTrue($success);
 	}
 
+	public function testMixedCredentialsLogin()
+	{
+		$db   = $this->di->get('db');
+		$auth = $this->di->get('auth');
+
+		$auth->registerUser(array(
+			'username'         => 'test_1',
+			'email'            => 'test@example.com',
+			'password'         => 'test_test_1',
+			'password_confirm' => 'test_test_1',
+		));
+		$auth->registerUser(array(
+			'username'         => 'test_2',
+			'email'            => 'test2@example.com',
+			'password'         => 'test_test_2',
+			'password_confirm' => 'test_test_2',
+		));
+
+		// Check if both can login regularly
+		$this->assertTrue($auth->login('test_1', 'test_test_1'));
+		$this->assertTrue($auth->login('test_2', 'test_test_2'));
+
+		// Login with email of 2 password of 1
+		$this->assertFalse(
+			$auth->login('test2@example.com', 'test_test_1')
+		);
+
+		// Login with username of 2 password of 1
+		$this->assertFalse(
+			$auth->login('test_2', 'test_test_1')
+		);
+	}
 
 }
