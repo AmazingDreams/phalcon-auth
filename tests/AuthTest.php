@@ -131,20 +131,27 @@ class AuthTest extends \PHPUnit_Framework_Testcase {
 		/* End test */
 	}
 
-	public function testLoginSuccess()
+	public function testLoginSuccessPasswordV1()
 	{
 		$db = $this->di->get('db');
 
 		// Insert user
-		$result = $db->query('INSERT INTO `users` (`username`, `email`, `password`) VALUES(:username, :email, :password)', array(
-			'username' => 'existing_user',
-			'email'    => 'someemail@example.com',
-			'password' => '80ed70cf6ba151f600527b2949b0516d1ce04c1b5c5d3baa1b3cdd396fcbf16a',
+		$result = $db->query('INSERT INTO `users` (`username`, `email`, `password`, `password_version`) VALUES(:username, :email, :password, :password_version)', array(
+			'username'         => 'existing_user',
+			'email'            => 'someemail@example.com',
+			'password'         => '80ed70cf6ba151f600527b2949b0516d1ce04c1b5c5d3baa1b3cdd396fcbf16a',
+			'password_version' => '1',
 		));
 
 		$success = $this->di->get('auth')->login('existing_user', 'some-password');
 
 		$this->assertTrue($success);
+
+		$user = $this->di->get('auth')->getUser();
+		$this->assertNotNull($user);
+		$this->assertEquals('existing_user', $user->username);
+		$this->assertEquals(2, $user->password_version);
+		$this->assertNotEquals('80ed70cf6ba151f600527b2949b0516d1ce04c1b5c5d3baa1b3cdd396fcbf16a', $user->password);
 	}
 
 	public function testLoginFailure()
@@ -156,15 +163,16 @@ class AuthTest extends \PHPUnit_Framework_Testcase {
 		$this->assertFalse($failed);
 	}
 
-	public function testLoginEmail()
+	public function testLoginEmailPasswordV1()
 	{
 		$db = $this->di->get('db');
 
 		// Insert user
-		$result = $db->query('INSERT INTO `users` (`username`, `email`, `password`) VALUES(:username, :email, :password)', array(
+		$result = $db->query('INSERT INTO `users` (`username`, `email`, `password`, `password_version`) VALUES(:username, :email, :password, :password_version)', array(
 			'username' => 'existing_user',
 			'email'    => 'someemail@example.com',
 			'password' => '80ed70cf6ba151f600527b2949b0516d1ce04c1b5c5d3baa1b3cdd396fcbf16a',
+			'password_version' => 1,
 		));
 
 		$success = $this->di->get('auth')->login('someemail@example.com', 'some-password');

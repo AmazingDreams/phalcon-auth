@@ -54,6 +54,8 @@ class Auth extends \Phalcon\Mvc\User\Component {
 				return $this->check_password_v1($user->password, $plain);
 			case 2:
 				return $this->check_password_v2($user->password, $plain);
+			default:
+				throw new \Phalcon\Exception("Unknown password_version!");
 		}
 	}
 
@@ -165,7 +167,7 @@ class Auth extends \Phalcon\Mvc\User\Component {
 		if ($user === FALSE)
 			return FALSE;
 
-		$passwordCorrect = $this->check_password($user->password, $password);
+		$passwordCorrect = $this->check_password($user, $password);
 
 		if ($passwordCorrect) {
 			$this->_user = $user;
@@ -223,6 +225,7 @@ class Auth extends \Phalcon\Mvc\User\Component {
 		$user->username = $values['username'];
 		$user->password = $this->hash($values['password']);
 		$user->email    = $values['email'];
+		$user->password_version = self::$_latest_password_version;
 		$user->save();
 
 		return $user->getMessages();
