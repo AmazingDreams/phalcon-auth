@@ -31,9 +31,10 @@ class TestDatabase extends \Phalcon\Db\Adapter\Pdo\Sqlite {
 	public function constructUsers()
 	{
 		$this->query('CREATE TABLE `users` (
-			`username` VARCHAR(255),
-			`email`    VARCHAR(255),
-			`password` VARCHAR(255)
+			`username`           VARCHAR(255)
+			, `email`            VARCHAR(255)
+			, `password`         VARCHAR(255)
+			, `password_version` INTEGER
 		)');
 
 		$this->_created_tables[] = 'users';

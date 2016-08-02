@@ -11,7 +11,7 @@
 	processIsolation="false"
 	stopOnFailure="false"
 	syntaxCheck="true">
-	<testsuite name="Guldenplaza - Tests">
+	<testsuite name="Phalcon Auth - Tests">
 		<directory>./</directory>
 	</testsuite>
 </phpunit>

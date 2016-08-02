@@ -14,6 +14,8 @@ use \Phalcon\Validation\Validator\StringLength;
  */
 class Auth extends \Phalcon\Mvc\User\Component {
 
+	private static $_latest_password_version = 2;
+
 	/**
 	 * The configuration
 	 */
@@ -40,22 +42,62 @@ class Auth extends \Phalcon\Mvc\User\Component {
 	}
 
 	/**
+	 * Check the password for correctness
+	 *
+	 * @param   user     User to check password for
+	 * @param   plain    Plaintext password to check
+	 * @return  boolean  Passwords is correct or not
+	 */
+	public function check_password($user, $plain) {
+		switch($user->password_version) {
+			case 1:
+				return $this->check_password_v1($user->password, $plain);
+			case 2:
+				return $this->check_password_v2($user->password, $plain);
+			default:
+				throw new \Phalcon\Exception("Unknown password_version!");
+		}
+	}
+
+	/**
+	 * Check password using version 1 of the hashing algorithm
+	 *
+	 * @param   hashed   Hashed version of the password
+	 * @param   plain    Plaintext version of the password
+	 * @return  boolean  Password correct or not
+	 */
+	public function check_password_v1($hashed, $plain) {
+		return $hashed === $this->hash_v1($plain);
+	}
+
+	/**
+	 * Check password using version 2 of the hashing algorithm
+	 *
+	 * @param   hashed   Hashed version of the password
+	 * @param   plain    Plaintext version of the password
+	 * @return  boolean  Password correct or not
+	 */
+	public function check_password_v2($hashed, $plain) {
+		return password_verify($plain, $hashed);
+	}
+
+	/**
 	 * Get the currently logged in user
 	 *
 	 * @return  The currently logged in user or FALSE if there is not any
 	 */
-	public function getUser()
-	{
+	public function getUser() {
 		if($this->_user !== NULL)
 			return $this->_user;
 
-		if($this->session->has($this->_config->session_key))
-		{
+		if($this->session->has($this->_config->session_key)) {
+			// Found session key, try to find the user
+			$userId      = $this->session->get($this->_config->session_key);
 			$classname   = $this->_className;
-			$this->_user = $classname::findFirst($this->session->get($this->_config->session_key));
+			$this->_user = $classname::findFirst($userId);
 		}
-		else
-		{
+		else {
+			// Session key not found
 			$this->_user = FALSE;
 		}
 
@@ -67,8 +109,16 @@ class Auth extends \Phalcon\Mvc\User\Component {
 	 *
 	 * @return  The hashed string
 	 */
-	public function hash($string)
-	{
+	public function hash($string) {
+		return $this->hash_v2($string);
+	}
+
+	/**
+	 * Hashes a string with the hash key and hash method set in the configuration
+	 *
+	 * @return  The hashed string
+	 */
+	public function hash_v1($string) {
 		$hash_key    = $this->_config->hash_key;
 		$hash_method = $this->_config->hash_method;
 
@@ -76,10 +126,18 @@ class Auth extends \Phalcon\Mvc\User\Component {
 	}
 
 	/**
+	 * Hashes a string using bcrypt
+	 *
+	 * @return  The hashed string
+	 */
+	public function hash_v2($string) {
+		return password_hash($string, PASSWORD_BCRYPT);
+	}
+
+	/**
 	 * Logout the current user
 	 */
-	public function logout()
-	{
+	public function logout() {
 		// Remove the session identifier
 		$this->session->remove($this->_config->session_key);
 
@@ -96,25 +154,33 @@ class Auth extends \Phalcon\Mvc\User\Component {
 	 *
 	 * @return  TRUE on success FALSE on failure
 	 */
-	public function login($username, $password, $remember = FALSE)
-	{
-		$classname   = $this->_className;
-		$this->_user = $classname::findFirst(array(
-			'(username = :username: OR email = :email:) AND password = :password:',
+	public function login($username, $password, $remember = FALSE) {
+		$classname = $this->_className;
+		$user = $classname::findFirst(array(
+			'(username = :username: OR email = :email:)',
 			'bind' => array(
 				'username' => $username,
 				'email'    => $username,
-				'password' => $this->hash($password),
 			)));
 
-		if ($this->_user !== FALSE)
-		{
+		// User not found
+		if ($user === FALSE)
+			return FALSE;
+
+		$passwordCorrect = $this->check_password($user, $password);
+
+		if ($passwordCorrect) {
+			$this->_user = $user;
 			$this->session->set($this->_config->session_key, $this->_user->id);
 
-			return TRUE;
+			if ($this->_user->password_version !== self::$_latest_password_version) {
+				$this->_user->password = $this->hash($password);
+				$this->_user->password_version = self::$_latest_password_version;
+				$this->_user->save();
+			}
 		}
 
-		return FALSE;
+		return $passwordCorrect;
 	}
 
 	/**
@@ -159,6 +225,7 @@ class Auth extends \Phalcon\Mvc\User\Component {
 		$user->username = $values['username'];
 		$user->password = $this->hash($values['password']);
 		$user->email    = $values['email'];
+		$user->password_version = self::$_latest_password_version;
 		$user->save();
 
 		return $user->getMessages();
